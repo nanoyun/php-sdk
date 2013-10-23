@@ -6,7 +6,7 @@ session_start();
  */
 class Nanoyun{
 
-    private $_server = 'api.nanoyun.com';
+    private $_server = 'api_client.nanoyun.com';
     private $_app_key;
     private $_app_secret;
     private $_token;
@@ -28,14 +28,13 @@ class Nanoyun{
      */
     public function get_access_token()
     {
-        if(time() > $_SESSION['accesstoken']->expires_time) {
+        if(!isset($_SESSION['accesstoken']) || time() > $_SESSION['accesstoken']->expires_time) {
             $params = array(
                     'appkey' => $this->_app_key,
                     'appsecret' => $this->_app_secret,
                     'response_type' => 'code',
             );
             $url = 'http://'. $this->_server. '/oauth/accesstoken' .'?'. http_build_query($params);
-            echo '--------------'.$url.'-------------';
             $accesstoken = file_get_contents($url);
             $accesstoken = json_decode($accesstoken);
             $accesstoken->expires_time = time() + $accesstoken->expires_in; //有效时间
@@ -55,13 +54,13 @@ class Nanoyun{
      * @param boolean $auto_mkdir
      * @param array $opts
      */
-    public function writeFile($fspace, $filename, $file, $auto_mkdir = False, $opts = Null){
+    public function writeFile($fspace,$filename, $file, $auto_mkdir = False, $opts = Null){
         if(is_null($opts))$opts = array();
         if ($auto_mkdir === True) $opts['Mkdir'] = 'true';
         $params = array(
-            'access_token' => $this->_token,
-            'filename' => $filename,
-            'fspace' => $fspace,
+                'access_token' => $this->_token,
+                'filename' => $filename,
+                'fspace' => $fspace,
         );
         $url = 'http://'. $this->_server. '/put.php';
         $this->_file_infos = $this->_request($url, $params ,'put', $opts, $file);
