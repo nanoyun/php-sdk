@@ -142,9 +142,9 @@ class Nanoyun{
      * $param $path 目录路径或文件路径
      * @return json
      */
-    public function delete($path)
+    public function delete($spacename, $path)
     {
-        $params = array('access_token' => $this->_token, 'path' => $path);
+        $params = array('access_token' => $this->_token, 'path' => $path, 'spacename' => $spacename);
         $url = 'http://'. $this->_server. '/space/delete.html';
         $resp  = $this->_request($url, $params, 'post');
         return $resp;
