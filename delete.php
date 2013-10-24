@@ -14,7 +14,7 @@ $spacename = 'images00'; //nanoyun中创建的空间名
 //$dir = 'op4'; //指定删除的目录
 // $info = $nanoyun->delete($dir);
 //删除文件测试
-$path = '/data/foru.jpg';//指定删除的文件
+$path = '/data';//指定删除的文件
 $info = $nanoyun->delete($spacename, $path);//执行删除莋
 $info = json_decode($info);
 var_dump($info);//输出返回信息
