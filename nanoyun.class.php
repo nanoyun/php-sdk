@@ -179,15 +179,15 @@ class Nanoyun{
 
     /**
      * 创建空间(目录)
-     * $param $space //空间（目录）名称 (长度为5-20位小写英文字符、数字或横杠组合)
-     * $param $size MB  * 留空或零表示无限制
+     * $param $spacename 空间名称
+     * $param $dirname 创建目录名称
      * @return json
      */
-    public function makeDir($space, $size = '')
+    public function makeDir($spacename, $dirname)
     {
-        $params = array('access_token' => $this->_token, 'space' => $space,'size' => $size);
+        $params = array('access_token' => $this->_token, 'spacename' => $spacename,'dirname' => $dirname);
 
-        $url = 'http://'. $this->_server. '/space/create.html';
+        $url = 'http://'. $this->_server. '/space/makedir.html';
         $resp  = $this->_request($url, $params,'post');
         return $resp;
     }
