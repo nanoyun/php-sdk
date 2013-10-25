@@ -151,34 +151,21 @@ class Nanoyun{
     }
 
      /**
-     * 获取空间使用情况
+     * 获取指定的空间使用情况
+     * $param $spacename 若查看的空间名称
      * @return json
      */
-    public function getBucketUsage()
+    public function getSpaceUsage($spacename)
     {
-        $params = array('access_token' => $this->_token);
-        $url = 'http://'. $this->_server. '/user/getBucketUsage.html';
+        $params = array('access_token' => $this->_token, 'spacename' => $spacename);
+        $url = 'http://'. $this->_server. '/space/getSpaceUsage.html';
 
-        $resp = $this->_request($url, $params);
-        return $resp;
-    }
-
-     /**
-     * 获取目录或文件信息
-     * $path 文件 路径
-     * @return json
-     */
-    public function getFileInfo($path)
-    {
-        $params = array('access_token' => $this->_token, 'path' => $path);
-
-        $url = 'http://'. $this->_server. '/space/getFileInfo.html';
-        $resp  = $this->_request($url, $params);
+        $resp = $this->_request($url, $params, 'post');
         return $resp;
     }
 
     /**
-     * 创建空间(目录)
+     * 创建指定空间的目录
      * $param $spacename 空间名称
      * $param $dirname 创建目录名称
      * @return json
@@ -191,9 +178,6 @@ class Nanoyun{
         $resp  = $this->_request($url, $params,'post');
         return $resp;
     }
-
-   
-
 
     /**
      * 发送请求
