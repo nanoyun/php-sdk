@@ -123,17 +123,19 @@ class Nanoyun{
 
     /**
      * 获取目录文件列表
-     * $param $path 目录路径
+     * $param $spacename 空间名称指定
+     * $param $dirname 目录路径
      * @return json
      */
-    public function getList($path = '')
+    public function getList($spacename, $dirname)
     {
-        $params = array('access_token' => $this->_token);
-        if($path) {
-            $params['path'] = $path;
-        }
+        $params = array(
+            'access_token' => $this->_token,
+            'dirname' => $dirname,
+            'spacename' => $spacename,
+        );
         $url = 'http://'. $this->_server. '/space/getList.html';
-        $resp  = $this->_request($url, $params);
+        $resp  = $this->_request($url, $params, 'post');
         return $resp;
     }
 
