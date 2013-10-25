@@ -8,7 +8,7 @@ include_once "config.php";
 include_once "nanoyun.class.php";
 //创建nanoyun对象实例
 $nanoyun = new Nanoyun($app_key, $app_secret);
-$spacename = 'imagesOfNanoyun'; //nanoyun中创建的空间名
+$spacename = 'imagesofnanoyun'; //nanoyun中创建的空间名
 
 //删除目录测试
 //$dir = '/data'; //指定删除的目录
