@@ -9,8 +9,8 @@ include_once "nanoyun.class.php";
 //创建nanoyun对象实例
 $nanoyun = new Nanoyun($app_key, $app_secret);
 $filehandle = fopen('data/foru.jpg', 'rb');//打开要上传文件的文件流
-$spacename = 'images00'; //nanoyun中创建的空间名
-$filename = '/data/b/foru.jpg';//Nanoyun空间的存储位置
+$spacename = 'iamge3'; //nanoyun中创建的空间名
+$filename = '/data/foru.jpg';//Nanoyun空间的存储位置
 $rsp = $nanoyun->writeFile($spacename, $filename, $filehandle);//写入文件流到nanoyun端
 fclose($filehandle);//关闭文件流
 $rsp = json_decode($rsp);

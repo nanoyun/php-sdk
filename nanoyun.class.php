@@ -6,7 +6,7 @@ session_start();
  */
 class Nanoyun{
 
-    private $_server = 'api_client.nanoyun.com';
+    private $_server = 'api.nanoyun.com';
     private $_app_key;
     private $_app_secret;
     private $_token;
