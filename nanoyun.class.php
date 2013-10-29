@@ -1,307 +1,218 @@
 <?php
+//开启回话，保存token
 session_start();
+
 /**
- * 客户端服务封装
- * @author nanoyun.com
+ * Nano云存储服务
  */
 class Nanoyun{
 
-    private $_server = 'api_client.nanoyun.com';
+    //服务所在域名
+    private $_server = 'api.nanoyun.com';
+    //app key
     private $_app_key;
+    //app secret
     private $_app_secret;
+    //app token
     private $_token;
-    private $_timeout;
+    //app timeout
+    private $_timeout = 300;
 
     /**
-     * 初始化
+     * 初始化参数
      * @param string $app_key
      * @param string $app_secret
      */
     public function __construct($app_key, $app_secret){
         $this->_app_key = $app_key;
         $this->_app_secret = $app_secret;
-        $this->_token = $this->get_access_token();
+        $this->_token = $this->__get_token();
     }
 
     /**
-     * 获取token
+     * 权限校验
      */
-    public function get_access_token()
-    {
-        if(!isset($_SESSION['accesstoken']) || time() > $_SESSION['accesstoken']->expires_time) {
+    private function __get_token(){
+        if(!isset($_SESSION['_access_token']) || time() > $_SESSION['_access_token']->expires_time){
             $params = array(
-                    'appkey' => $this->_app_key,
-                    'appsecret' => $this->_app_secret,
-                    'response_type' => 'code',
+                'appkey' => $this->_app_key,
+                'appsecret' => $this->_app_secret,
+                'response_type' => 'code',
             );
-            $url = 'http://'. $this->_server. '/oauth/accesstoken' .'?'. http_build_query($params);
-            $accesstoken = file_get_contents($url);
-            $accesstoken = json_decode($accesstoken);
-            $accesstoken->expires_time = time() + $accesstoken->expires_in; //有效时间
-            $_SESSION['accesstoken'] =  $accesstoken;
-            $access_token = $accesstoken->access_token;
-        } else {
-            $access_token =  $_SESSION['accesstoken']->access_token;
+            $rsp = json_decode(file_get_contents($this->_change_uri_to_url('/oauth/accesstoken?'. http_build_query($params))));
+            $rsp->expires_time = time() + $rsp->expires_in;
+            $_SESSION['_access_token'] = $rsp;
+            return $rsp->access_token;
+        }else{
+            return $_SESSION['_access_token']->access_token;
         }
-        return $access_token;
     }
 
     /**
-     * 写入文件
-     * @param string $fspace
-     * @param string $filename
-     * @param mixed $file
-     * @param boolean $auto_mkdir
-     * @param array $opts
+     * 执行请求
+     * @param string $url
+     * @param array $app_secret
+     * @param string $method
+     * @param mixed $filehandle
      */
-    public function writeFile($fspace,$filename, $file, $auto_mkdir = False, $opts = Null){
-        if(is_null($opts))$opts = array();
-        if ($auto_mkdir === True) $opts['Mkdir'] = 'true';
-        $params = array(
-                'access_token' => $this->_token,
-                'filename' => $filename,
-                'fspace' => $fspace,
-        );
-        $url = 'http://'. $this->_server. '/put.php';
-        $this->_file_infos = $this->_request($url, $params ,'put', $opts, $file);
-        return $this->_file_infos;
-    }
-
-
-    /**
-     * 文件从云端读取[读取外链地址]
-     *
-     * @param $fspace 空间名称
-     * @param $filename 文件名称
-     */
-    public function readFile($fspace, $filename){
-        $params = array(
-                'access_token' => $this->_token,
-                'fname' => $filename,
-                'fspace' => $fspace
-        );
-        $url = 'http://'. $this->_server. '/space/readFile';
-
-        $resp = $this->_request($url, $params);
-        return $resp;
-    }
-
-
-    /**
-     * 移动文件
-     * $fname 文件名
-     * $new_name  新文件名
-     */
-    public function moveFile($fname, $new_name){
-        $params = array(
-                'access_token' => $this->_token,
-                'fname' => $fname,
-                'new_name' => $new_name
-        );
-        $url = 'http://'. $this->_server. '/space/moveFile';
-        $resp = $this->_request($url, $params);
-        return $resp;
-    }
-
-    /**
-     * 复制文件
-     * $name 文件名
-     * $new_name  新文件名
-     */
-    public function copyFile($name, $new_name){
-        $params = array(
-                'access_token' => $this->_token,
-                'fname' => $name,
-                'new_name' => $new_name
-        );
-        $url = 'http://'. $this->_server. '/space/copyFile';
-        $resp = $this->_request($url, $params);
-        return $resp;
-    }
-
-
-
-    /**
-     * 获取目录文件列表
-     * $param $spacename 空间名称指定
-     * $param $dirname 目录路径
-     * @return json
-     */
-    public function getList($spacename, $dirname)
-    {
-        $params = array(
-            'access_token' => $this->_token,
-            'dirname' => $dirname,
-            'spacename' => $spacename,
-        );
-        $url = 'http://'. $this->_server. '/space/getList.html';
-        $resp  = $this->_request($url, $params, 'post');
-        return $resp;
-    }
-
-     /**
-     * 删除目录或者文件
-     * $param $path 目录路径或文件路径
-     * @return json
-     */
-    public function delete($spacename, $path)
-    {
-        $params = array('access_token' => $this->_token, 'path' => $path, 'spacename' => $spacename);
-        $url = 'http://'. $this->_server. '/space/delete.html';
-        $resp  = $this->_request($url, $params, 'post');
-        return $resp;
-    }
-
-     /**
-     * 获取指定的空间使用情况
-     * $param $spacename 若查看的空间名称
-     * @return json
-     */
-    public function getSpaceUsage($spacename)
-    {
-        $params = array('access_token' => $this->_token, 'spacename' => $spacename);
-        $url = 'http://'. $this->_server. '/space/getSpaceUsage.html';
-
-        $resp = $this->_request($url, $params, 'post');
-        return $resp;
-    }
-
-    /**
-     * 创建指定空间的目录
-     * $param $spacename 空间名称
-     * $param $dirname 创建目录名称
-     * @return json
-     */
-    public function makeDir($spacename, $dirname)
-    {
-        $params = array('access_token' => $this->_token, 'spacename' => $spacename,'dirname' => $dirname);
-
-        $url = 'http://'. $this->_server. '/space/makedir.html';
-        $resp  = $this->_request($url, $params,'post');
-        return $resp;
-    }
-
-    /**
-     * 发送请求
-     * @param string $uri 请求的资源
-     * @param $params 接口参数   array('content'=>'test', 'format'=>'json');
-     * @param string $method 请求的方法
-     * @param string $headers 请求头
-     * @param string $body POST请求发送数据
-     * @param flow $file_handle 文件流
-     */
-    public function _request($uri, $params = array(), $method = 'GET', $headers = null, $body = null, $file_handle=null)
-    {
-
+    private function _do_request($url, $params = array(), $method = 'post', $filehandle = null){
         $method = strtolower($method);
-        switch ($method)
-        {
+        if(!empty($params)){
+            $params['access_token'] = $this->_token;
+        }
+        $req_conn = curl_init();
+        switch($method){
             case 'post':
-                $ci = curl_init();
-                curl_setopt($ci, CURLOPT_USERAGENT, 'PHP-SDK OAuth2.0');
-                curl_setopt($ci, CURLOPT_CONNECTTIMEOUT, 3);
-                curl_setopt($ci, CURLOPT_TIMEOUT, 3);
-                curl_setopt($ci, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ci, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ci, CURLOPT_SSL_VERIFYHOST, false);
-                curl_setopt($ci, CURLOPT_HEADER, false);
-                curl_setopt($ci, CURLOPT_POST, TRUE);
-                if (!empty($params))
-                {
-
-                    curl_setopt($ci, CURLOPT_POSTFIELDS, http_build_query($params));
-
+                curl_setopt($req_conn, CURLOPT_USERAGENT, 'PHP-SDK OAuth2.0');
+                curl_setopt($req_conn, CURLOPT_CONNECTTIMEOUT, 3);
+                curl_setopt($req_conn, CURLOPT_TIMEOUT, 3);
+                curl_setopt($req_conn, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($req_conn, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($req_conn, CURLOPT_SSL_VERIFYHOST, false);
+                curl_setopt($req_conn, CURLOPT_HEADER, false);
+                curl_setopt($req_conn, CURLOPT_POST, true);
+                if(!empty($params)){
+                    curl_setopt($req_conn, CURLOPT_POSTFIELDS, http_build_query($params));
                 }
-                curl_setopt($ci, CURLINFO_HEADER_OUT, TRUE );
-                curl_setopt($ci, CURLOPT_URL, $uri);
-                $response = curl_exec($ci);
-                curl_close ($ci);
+                curl_setopt($req_conn, CURLINFO_HEADER_OUT, true);
+                curl_setopt($req_conn, CURLOPT_URL, $url);
+                break;
+            case 'put':
+                // echo "$url,method=$method,filehandle=$filehandle\n";
+                if(!empty($params)){
+                    $url = $url. (strpos($url, '?')?'&':'?'). http_build_query($params);
+                }
+                curl_setopt($req_conn, CURLOPT_USERAGENT, 'PHP-SDK OAuth2.0');
+                curl_setopt($req_conn, CURLOPT_URL, $url);
+                $_headers = array('Expect:');
+                if(!is_null($filehandle)){
+                    if(is_resource($filehandle)){
+                        // echo '是文件';
+                        fseek($filehandle, 0, SEEK_END);
+                        $length = ftell($filehandle);
+                        fseek($filehandle, 0);
+                        array_push($_headers, "Content-Length: {$length}");
+                        curl_setopt($req_conn, CURLOPT_INFILE, $filehandle);
+                        curl_setopt($req_conn, CURLOPT_INFILESIZE, $length);
+                    }else{
+                        curl_close($req_conn);
+                        throw new Exception("filehandle must be resource type");
+                    }
+                }
+                $date = date('Y-m-d H:i:s', time());
+                array_push($_headers, "Date: {$date}");
+                curl_setopt($req_conn, CURLOPT_HTTPHEADER, $_headers);
+                curl_setopt($req_conn, CURLOPT_TIMEOUT, $this->_timeout);
+                curl_setopt($req_conn, CURLOPT_RETURNTRANSFER, 1);
+                curl_setopt($req_conn, CURLOPT_FOLLOWLOCATION, 0);
+                curl_setopt($req_conn, CURLOPT_CUSTOMREQUEST, $method);
+                curl_setopt($req_conn, CURLOPT_POST, 1);
                 break;
             default:
-                if (!empty($params))
-                {
-                    $uri = $uri . (strpos($uri, '?') ? '&' : '?')
-                        . (is_array($params) ? http_build_query($params) : $params);
-                }
-                $url = $uri;
-                $ch = $ci = curl_init($uri);
-
-                $_headers = array('Expect:');
-                if(!is_null($headers) && is_array($headers)){
-                    foreach ($headers as $key=>$value){
-                        array_push($_headers, "{$key}: {$value}");
-                    }
-                }
-
-                $length = 0;
-                $date = date('Y-m-d H:i:s');
-
-                if(!is_null($body)){
-                    if(is_resource($body)){
-                        fseek($body, 0, SEEK_END);
-                        $length = ftell($body);
-                        fseek($body, 0);
-
-                        array_push($_headers, "Content-Length: {$length}");
-                        curl_setopt($ch, CURLOPT_INFILE, $body);
-                        curl_setopt($ch, CURLOPT_INFILESIZE, $length);
-                    }else{
-                        $length = @strlen($body);
-                        array_push($_headers, "Content-Length: {$length}");
-                        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-                    }
-                }else{
-                    array_push($_headers, "Content-Length: {$length}");
-                }
-
-                array_push($_headers, "Date: {$date}");
-                curl_setopt($ch, CURLOPT_HTTPHEADER, $_headers);
-
-                curl_setopt($ch, CURLOPT_TIMEOUT, $this->_timeout);
-                //curl_setopt($ch, CURLOPT_HEADER, 1);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-
-                if(strtolower($method) == 'put'){
-                    curl_setopt($ch, CURLOPT_POST, 1);
-                }else{
-                    curl_setopt($ch, CURLOPT_POST, 0);
-                }
-                if(strtolower($method) == 'get' && is_resource($file_handle)){
-                    curl_setopt($ch, CURLOPT_HEADER, 0);
-                    curl_setopt($ch, CURLOPT_FILE, $file_handle);
-                }
-
-                if ($method == 'HEAD') {
-                    curl_setopt($ch, CURLOPT_NOBODY, true);
-                }
-
-                $response = curl_exec($ch);
-                $response_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            break;
-
+                curl_close($req_conn);
+                throw new Exception("unsupported method called.");
+                break;
         }
+        $response = curl_exec($req_conn);
+        curl_close($req_conn);
         return $response;
     }
+
     /**
-     * 处理HTTP HEADERS中返回的自定义数据
-     *
-     * @param string $text header字符串
-     *
-     * @return array
+     * 将uri转为url
+     * @param string $uri
      */
-    private function _getHeadersData($text) {/*{{{*/
-        $headers = explode("\r\n", $text);
-        $items = array();
-        foreach($headers as $header) {
-            $header = trim($header);
-            if(strpos($header, 'x-upyun') !== False){
-                list($k, $v) = explode(':', $header);
-                $items[trim($k)] = in_array(substr($k,8,5), array('width','heigh','frame')) ? intval($v) : trim($v);
-            }
-        }
-        return $items;
-    }/*}}}*/
+    private function _change_uri_to_url($uri){
+        return 'http://'. $this->_server. $uri;
+    }
+
+    /**
+     * 写入文件流
+     * @param string $spacename
+     * @param string $filename
+     * @param mixed $filehandle
+     */
+    public function write_file($spacename, $filename, $filehandle){
+        $params = array(
+            'spacename' => $spacename,
+            'filename' => $filename,
+        );
+        return $this->_do_request($this->_change_uri_to_url('/put.php'), $params, 'put', $filehandle);
+    }
+
+    /**
+     * 读取文件信息
+     * @param string $spacename
+     * @param string $filename
+     * @param mixed $filehandle
+     */
+    public function read_file($spacename, $filename){
+        $params = array(
+            'spacename' => $spacename,
+            'filename' => $filename,
+        );
+        return $this->_do_request($this->_change_uri_to_url('/space/readFile'), $params);
+    }
+
+    /**
+     * 删除目录或文件
+     * @param string $spacename
+     * @param string $path
+     */
+    public function delete($spacename, $path){
+        $params = array(
+            'spacename' => $spacename,
+            'path' => $path,
+        );
+        return $this->_do_request($this->_change_uri_to_url('/space/delete'), $params);
+    }
+
+    /**
+     * 创建目录
+     * @param string $spacename
+     * @param string $dirname
+     */
+    public function make_dir($spacename, $dirname){
+        $params = array(
+            'spacename' => $spacename,
+            'dirname' => $dirname,
+        );
+        return $this->_do_request($this->_change_uri_to_url('/space/makedir'), $params);
+    }
+
+    /**
+     * 获取文件列表
+     * @param string $spacename
+     * @param string $dirname
+     */
+    public function get_list($spacename, $dirname){
+        $params = array(
+            'spacename' => $spacename,
+            'dirname' => $dirname,
+        );
+        return $this->_do_request($this->_change_uri_to_url('/space/getList'), $params);
+    }
+
+    /**
+     * 获取空间使用情况
+     * @param string $spacename
+     */
+    public function get_space_usage($spacename){
+        $params = array(
+            'spacename' => $spacename,
+        );
+        return $this->_do_request($this->_change_uri_to_url('/space/getSpaceUsage'), $params);
+    }
+
 }
 
+// $nanoyun = new Nanoyun(APPKEY, APPSECRET);
+// $filehandle = fopen('data/foru.jpg', 'rb');
+// $rsp = $nanoyun->write_file('image', 'data/ff2/foru2.jpg', $filehandle);
+// $rsp = $nanoyun->read_file('image', 'data/f/foru.jpg');
+// $rsp = $nanoyun->delete('image', 'data');
+// $rsp = $nanoyun->make_dir('image', 'demo2/d1');
+// $rsp = $nanoyun->get_list('image', '/');
+// $rsp = $nanoyun->get_space_usage('image');
+// fclose($filehandle);//关闭文件流
+// var_dump(json_decode($rsp));
