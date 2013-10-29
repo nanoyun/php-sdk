@@ -1,5 +1,4 @@
 <?php
-
-$app_key = '5138198270'; //App key
-$app_secret = 'e4da3b7fbbce2345d7772b0674a318d5';//App Secret
-date_default_timezone_set('Asia/Shanghai'); //定义系统默认时间区域
+define('APPKEY', 'value');//设置App Key
+define('APPSECRET', 'value');//设置App Secret
+define('SPACENAME', 'image');//空间名称
