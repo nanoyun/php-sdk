@@ -205,14 +205,3 @@ class Nanoyun{
     }
 
 }
-
-// $nanoyun = new Nanoyun(APPKEY, APPSECRET);
-// $filehandle = fopen('data/foru.jpg', 'rb');
-// $rsp = $nanoyun->write_file('image', 'data/ff2/foru2.jpg', $filehandle);
-// $rsp = $nanoyun->read_file('image', 'data/f/foru.jpg');
-// $rsp = $nanoyun->delete('image', 'data');
-// $rsp = $nanoyun->make_dir('image', 'demo2/d1');
-// $rsp = $nanoyun->get_list('image', '/');
-// $rsp = $nanoyun->get_space_usage('image');
-// fclose($filehandle);//关闭文件流
-// var_dump(json_decode($rsp));

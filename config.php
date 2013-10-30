@@ -1,4 +1,4 @@
 <?php
-define('APPKEY', 'value');//设置App Key
-define('APPSECRET', 'value');//设置App Secret
-define('SPACENAME', 'image');//空间名称
+define('APPKEY', 'appkey value');//设置App Key
+define('APPSECRET', 'appsecret value');//设置App Secret
+define('SPACENAME', 'spacename value');//空间名称

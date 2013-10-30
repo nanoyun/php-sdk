@@ -1,16 +1,11 @@
 <?php
 /**
- *　获取空间使用情况
+ * 读取当前空间信息测试
  */
+include "../config.php";//导入appkey、appsecret、空间名称
+include "../nanoyun.class.php";
 
-//导入配置文件，包含appkey和appsecret设置
-include_once "config.php";
-//导入核心封装库
-include_once "nanoyun.class.php";
-//创建nanoyun对象实例
-$nanoyun = new Nanoyun($app_key, $app_secret);
-$spacename = 'imagesofnanoyun';//指定查看的空间名称
-$rsp = $nanoyun->getSpaceUsage($spacename);//获取空间信息
-$rsp = json_decode($rsp);
-var_dump($rsp);
-?>
+$nanoyun = new Nanoyun(APPKEY, APPSECRET);
+
+$rsp = $nanoyun->get_space_usage(SPACENAME);
+var_dump(json_decode($rsp));
