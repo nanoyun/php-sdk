@@ -12,6 +12,8 @@ Nano云存储是通用的大规模存储服务。开放高度可扩展的API，�
 
 简单填写一些注册信息，开启云端的日子吧~
 
+![register](http://wiki.nanoyun.com/assets/images/register.jpg)
+
 <image src="http://wiki.nanoyun.com/assets/images/register.jpg" style="width:600px;"/>
 
 
