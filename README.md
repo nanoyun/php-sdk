@@ -14,20 +14,18 @@ Nano云存储是通用的大规模存储服务。开放高度可扩展的API，�
 
 ![register](http://wiki.nanoyun.com/assets/images/register.jpg)
 
-<image src="http://wiki.nanoyun.com/assets/images/register.jpg" style="width:600px;"/>
-
 
 二、 [登陆](http://www.nanoyun.com/user/login.html)管理中心，[点击账号设置](http://www.nanoyun.com/user/setting.html)获取AppKey和AppSecret
 
 **注意：AppKey和AppSecret是Nano云存储对数据权限校验的判断依据，用户必须妥善保管，不能泄露给第三方。**
 
-<image src="http://wiki.nanoyun.com/assets/images/getkeys.jpg" />
+![getkeys](http://wiki.nanoyun.com/assets/images/getkeys.jpg)
 
 三、获取开发包源码
 
 从github上clone一份开发包到本地，或者直接下载ZIP包。[PHP-SDK项目地址](https://github.com/nanoyun/php-sdk)
 
-<image src="http://wiki.nanoyun.com/assets/images/github.jpg" style="width:600px;"/>
+![github](http://wiki.nanoyun.com/assets/images/github.jpg)
 
 四、根据SDK的文档，编写具体功能
 
